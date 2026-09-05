@@ -48,8 +48,9 @@ once per goal by a backward Dijkstra sweep (a BFS, since costs are unit) and
 reused by every one of the thousands of low-level calls CBS makes for that
 agent.
 
-Manhattan distance is admissible but weak. Measured over 150 benchmark start/goal
-pairs on `maze-32-32-2` by `tools/heuristic_report.py`:
+Manhattan distance is admissible but weak. Measured over the first 150
+start/goal pairs of scenario 1 for each map, by
+`python3 tools/heuristic_report.py --pairs 150`:
 
 | map | mean true/Manhattan | max | A* states expanded, true | with Manhattan |
 |---|---|---|---|---|
@@ -88,7 +89,7 @@ optimal.
 | `pc` | prioritise conflicts | split on a **cardinal** conflict (one where both children provably cost more) when one exists. Splitting on a free conflict just widens the tree. |
 | `bp` | bypass conflicts | if a child has the same cost as its parent and fewer conflicts, adopt its path into the parent instead of branching. A better plan for the price of a branch that never happens. |
 | `ds` | disjoint splitting | split on "agent *a* **must** be here" against "must not", instead of "*a* must not" against "*b* must not". The classic split's children overlap, so CBS can explore the same joint plan twice; the disjoint split partitions. |
-| `cg` / `dg` | high-level heuristic | an admissible estimate of the cost still to be paid, from the conflict graph. Usually the single biggest win. |
+| `cg` / `dg` | high-level heuristic | an admissible estimate of the cost still to be paid, from the conflict graph. Shrinks the tree the most and costs the most per node; the README ablation says where that pays. |
 
 ### Cardinal conflicts and MDDs
 
@@ -137,7 +138,9 @@ optimum for w in {1.0, 1.05, 1.2, 1.5, 2.0, 3.0}.
 **Relationship to EECBS.** EECBS adds an *inadmissible*, online-learned
 high-level heuristic to order FOCAL while keeping the admissible bound separate.
 We implement ECBS plus an optional **admissible** CG/DG heuristic added to `LB`.
-That is the gap between this and a full EECBS.
+That is the gap between this and a full EECBS. We have not run the EECBS
+reference implementation and make no claim about matching it; it is cited as
+what a serious comparison would be made against.
 
 ## Prioritised planning (`swarmplan/prioritised`)
 

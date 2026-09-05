@@ -43,8 +43,9 @@ four switchable improvements here matter more than the base algorithm:
     overlap; the disjoint split partitions.
 ``heuristic``
     ``cg`` or ``dg``: an admissible estimate of the cost still to be paid, from
-    the conflict graph (see :mod:`swarmplan.cbs.heuristics`). This is the single
-    biggest win of the four.
+    the conflict graph (see :mod:`swarmplan.cbs.heuristics`). It shrinks the tree
+    the most and costs the most per node; whether that trade pays depends on the
+    map, and the ablation table in the README says where it does.
 
 Every one of them is off by default and independently switchable, because the
 point of implementing them is to be able to measure them separately.
@@ -330,6 +331,22 @@ class CBS:
         return conflict.a1 if m1.width(conflict.time) <= m2.width(conflict.time) else conflict.a2
 
     # -- main loop -------------------------------------------------------
+    def initial_paths(self) -> Optional[List[List[int]]]:
+        """Each agent's optimal path ignoring every other agent: the CBS root.
+
+        Exposed because it is the "before" picture: the sum of these costs is
+        the lower bound the whole search starts from, and the collisions between
+        them are exactly what the constraint tree exists to resolve. Returns
+        ``None`` if some agent cannot reach its goal at all.
+        """
+        paths = []
+        for a in range(self.n_agents):
+            p = self._plan(a, [])
+            if p is None:
+                return None
+            paths.append(p)
+        return paths
+
     def solve(self) -> Solution:
         """Run the search. Returns a :class:`~swarmplan.solution.Solution`."""
         cfg = self.config

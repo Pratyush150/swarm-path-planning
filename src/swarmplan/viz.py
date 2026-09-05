@@ -41,6 +41,24 @@ def _require() -> None:
         )
 
 
+#: Line styles and markers cycled in the success-rate charts. Several
+#: algorithms sit at 100% over the same range, and a colour alone cannot
+#: separate two lines drawn on top of each other.
+LINE_STYLES = ("-", "--", "-.", ":")
+LINE_MARKERS = ("o", "s", "^", "D", "v", "P")
+
+
+def series_style(index: int) -> Dict[str, object]:
+    """Colour, dash pattern and marker for the ``index``-th series in a chart."""
+    _require()
+    cmap = plt.get_cmap("viridis")
+    return {
+        "color": cmap((index % 9) / 8.0),
+        "linestyle": LINE_STYLES[index % len(LINE_STYLES)],
+        "marker": LINE_MARKERS[index % len(LINE_MARKERS)],
+    }
+
+
 def agent_colours(n: int, cmap: str = "turbo") -> np.ndarray:
     """``n`` visually distinct colours, spread so neighbours differ."""
     _require()
@@ -422,13 +440,12 @@ def plot_success_rate(records, out_path, title: str = "", dpi: int = 130) -> Pat
         by_alg.setdefault(alg, {})[n] = success_rate(rows)
 
     fig, ax = plt.subplots(figsize=(6.4, 4.0), dpi=dpi)
-    cmap = plt.get_cmap("viridis")
     names = sorted(by_alg)
     for i, alg in enumerate(names):
         series = sorted(by_alg[alg].items())
         xs = [n for n, _ in series]
         ys = [100.0 * v for _, v in series]
-        ax.plot(xs, ys, marker="o", ms=4, lw=1.7, label=alg, color=cmap(i / max(len(names) - 1, 1)))
+        ax.plot(xs, ys, ms=4, lw=1.7, label=alg, **series_style(i))
     ax.set_xlabel("number of agents")
     ax.set_ylabel("success rate within the time budget (%)")
     ax.set_ylim(-3, 103)
@@ -437,6 +454,56 @@ def plot_success_rate(records, out_path, title: str = "", dpi: int = 130) -> Pat
     if title:
         ax.set_title(title, fontsize=10)
     fig.tight_layout()
+    fig.savefig(out_path, bbox_inches="tight", facecolor="white")
+    plt.close(fig)
+    return out_path
+
+
+def plot_success_rate_grid(
+    records, maps: Sequence[str], out_path, title: str = "", dpi: int = 130
+) -> Path:
+    """Success rate against agent count, one panel per map, shared legend.
+
+    Two maps side by side say more than either alone: an open map is a pure
+    congestion test and a warehouse map is a bottleneck test, and the algorithms
+    do not rank the same way on both.
+    """
+    _require()
+    out_path = Path(out_path)
+    from .metrics import group_by, success_rate
+
+    maps = [m for m in maps]
+    fig, axes = plt.subplots(1, len(maps), figsize=(5.4 * len(maps), 4.0), dpi=dpi, sharey=True)
+    axes = np.atleast_1d(axes)
+    names = sorted({r.algorithm for r in records})
+    for ax, map_name in zip(axes, maps):
+        rows = [r for r in records if r.map_name == map_name]
+        by_alg: Dict[str, Dict[int, float]] = {}
+        for (alg, n), group in group_by(rows, "algorithm", "n_agents").items():
+            by_alg.setdefault(alg, {})[n] = success_rate(group)
+        for i, alg in enumerate(names):
+            series = sorted(by_alg.get(alg, {}).items())
+            if not series:
+                continue
+            ax.plot(
+                [n for n, _ in series], [100.0 * v for _, v in series],
+                ms=4, lw=1.7, label=alg, **series_style(i),
+            )
+        ax.set_xlabel("number of agents")
+        ax.set_title(map_name, fontsize=10)
+        ax.set_ylim(-3, 103)
+        ax.grid(alpha=0.25, lw=0.5)
+    axes[0].set_ylabel("success rate within the time budget (%)")
+    handles, labels = axes[0].get_legend_handles_labels()
+    if title:
+        fig.suptitle(title, fontsize=10)
+    fig.tight_layout(rect=(0, 0.10, 1, 1))
+    # The legend goes under the panels: nine series do not fit inside an axis
+    # without covering the curves they describe.
+    fig.legend(
+        handles, labels, fontsize=8, frameon=False, ncol=min(5, len(labels)),
+        loc="lower center", bbox_to_anchor=(0.5, -0.01),
+    )
     fig.savefig(out_path, bbox_inches="tight", facecolor="white")
     plt.close(fig)
     return out_path
@@ -470,7 +537,9 @@ def plot_runtime_distribution(records, out_path, title: str = "", dpi: int = 130
         flier.set_markersize(2.5)
         flier.set_markeredgecolor("#777777")
     ax.set_yscale("log")
-    ax.set_xticklabels([n.replace("+", "\n+") for n in names], fontsize=7.5)
+    ax.set_xticklabels(
+        [n.replace("+", "\n+").replace("(", "\n(") for n in names], fontsize=7.5
+    )
     ax.set_ylabel("runtime, solved instances (s, log scale)")
     ax.grid(alpha=0.25, lw=0.5, axis="y")
     if title:

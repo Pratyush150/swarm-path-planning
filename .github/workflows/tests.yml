@@ -25,7 +25,8 @@ jobs:
           python -m pip install --upgrade pip
           pip install pytest
           if [ -f requirements.txt ]; then pip install -r requirements.txt || true; fi
-          if [ -f requirements-dev.txt ]; then pip install -r requirements-dev.txt || true; fi
 
+      # The benchmark archives are not fetched here: every test that needs them
+      # skips itself, so this job exercises the whole unit suite offline.
       - name: Run tests
         run: python -m pytest -q

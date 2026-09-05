@@ -7,7 +7,7 @@ is also, on any map with real obstacles, badly uninformed, and in MAPF that
 matters far more than usual because the low-level search is re-run thousands of
 times inside the constraint tree.
 
-On ``maze-32-32-2`` -- a benchmark maze with one-cell corridors -- two cells a
+On ``maze-32-32-2`` -- a benchmark maze of two-cell corridors -- two cells a
 few columns apart can be tens of steps apart through the maze. Measured over 150
 benchmark start/goal pairs on that map (``tools/heuristic_report.py``), the true
 distance averages 2.87x the Manhattan estimate and reaches 17.3x, and the

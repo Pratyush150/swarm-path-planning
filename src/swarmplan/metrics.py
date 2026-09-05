@@ -135,13 +135,14 @@ def success_rate(records: Iterable[RunRecord]) -> float:
 def runtime_stats(records: Iterable[RunRecord], solved_only: bool = True) -> Dict[str, float]:
     """Median / mean / p90 / max runtime over a set of runs, in seconds.
 
-    Failed runs are excluded by default: including a run that hit a 30 s timeout
-    as "took 30 s" makes a slow algorithm look artificially consistent.
+    Failed runs are excluded by default: counting a run that hit the time budget
+    as "took exactly the budget" flatters a slow algorithm, and averages a number
+    that describes the budget rather than the algorithm.
     """
     times = [r.runtime for r in records if r.solved or not solved_only]
     if not times:
         nan = float("nan")
-        return {"n": 0, "median": nan, "mean": nan, "p90": nan, "max": nan}
+        return {"n": 0.0, "median": nan, "mean": nan, "p90": nan, "max": nan}
     times.sort()
     p90 = times[min(len(times) - 1, int(round(0.9 * (len(times) - 1))))]
     return {

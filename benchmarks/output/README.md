@@ -12,11 +12,14 @@ README displays is committed:
 
 | file | produced by |
 |---|---|
-| `swarm-demo.gif`, `swarm-filmstrip.png` | `make_figures.py --animation` |
-| `formation-morph.gif`, `formation-morph.png` | `make_figures.py --morph` |
+| `swarm-demo.gif`, `swarm-demo.mp4`, `swarm-filmstrip.png` | `make_figures.py --animation` |
+| `formation-morph.gif`, `formation-morph.mp4`, `formation-morph.png` | `make_figures.py --morph` |
 | `assignment-comparison.png` | `make_figures.py --morph` |
 | `conflict-spacetime.png` | `make_figures.py --conflict` |
 | `success-rate.png`, `runtime-distribution.png` | `make_figures.py --charts` (needs `results.csv`) |
+
+The MP4s are transcoded from the GIFs when `ffmpeg` is available; they are a
+tenth of the size and are what to use in a slide or a video.
 
 `results.csv` and `tables.md` are not committed: they are the measurement, and
 they belong to the machine that produced them. The tables in the README are

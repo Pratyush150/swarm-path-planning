@@ -238,10 +238,10 @@ def conflict_figure(args) -> None:
     goals = [grid.node((0, 9)), grid.node((0, 0))]
     cache = HeuristicCache(grid.graph)
     cbs = CBS(grid.graph, starts, goals, CBSConfig(time_limit=10.0), cache)
-    root = [cbs._plan(a, []) for a in range(2)]
-    conflict = find_first_conflict(root)
+    root = cbs.initial_paths()
+    conflict = find_first_conflict(root) if root else None
     result = cbs.solve()
-    if not result.solved or conflict is None:
+    if root is None or not result.solved or conflict is None:
         print("conflict figure: no conflict or no solution; nothing rendered")
         return
     print(
@@ -263,13 +263,12 @@ def charts(args) -> None:
         print("charts: benchmarks/output/results.csv not found; run benchmarks/run.py first")
         return
     records = [r for r in read_csv(csv_path) if r.status != "skipped"]
-    main_map = args.map
-    rows = [r for r in records if r.map_name == main_map]
-    if rows:
-        p = viz.plot_success_rate(
-            rows, OUT / "success-rate.png",
-            title=f"success rate vs number of agents -- {main_map} "
-                  f"(3 scenarios per point, 20 s budget)",
+    maps = [m for m in args.chart_maps.split(",") if any(r.map_name == m for r in records)]
+    if maps:
+        p = viz.plot_success_rate_grid(
+            records, maps, OUT / "success-rate.png",
+            title="success rate vs number of agents (3 scenarios per point, 20 s budget, "
+                  "one CPU-only Python process)",
         )
         print(f"  {p.name}: {p.stat().st_size / 1024:.0f} KB")
     p = viz.plot_runtime_distribution(
@@ -288,6 +287,7 @@ def main(argv=None) -> int:
     p.add_argument("--conflict", action="store_true")
     p.add_argument("--charts", action="store_true")
     p.add_argument("--map", default="random-32-32-20")
+    p.add_argument("--chart-maps", default="random-32-32-20,warehouse-10-20-10-2-1")
     p.add_argument("--scen", type=int, default=1)
     p.add_argument("--agents", type=int, default=30)
     p.add_argument("--algorithm", default="ecbs:w=1.1")

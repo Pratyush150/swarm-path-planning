@@ -47,7 +47,7 @@ def test_space_time_figure_is_written(tmp_path):
     s = [grid.node((0, 0)), grid.node((0, 5))]
     g = [grid.node((0, 5)), grid.node((0, 0))]
     cbs = CBS(grid.graph, s, g, CBSConfig(time_limit=20.0))
-    root = [cbs._plan(a, []) for a in range(2)]
+    root = cbs.initial_paths()
     conflict = find_first_conflict(root)
     result = cbs.solve()
     assert conflict is not None and result.status == SOLVED
@@ -81,6 +81,8 @@ def test_charts_are_written_from_records(tmp_path):
         for alg in ("CBS", "ECBS(w=1.1)")
     ]
     success = viz.plot_success_rate(records, tmp_path / "success.png", dpi=60)
+    grid = viz.plot_success_rate_grid(records, ["m"], tmp_path / "success-grid.png", dpi=60)
+    assert grid.exists()
     runtime = viz.plot_runtime_distribution(records, tmp_path / "runtime.png", dpi=60)
     assert success.exists() and runtime.exists()
     bars = viz.plot_assignment_comparison(

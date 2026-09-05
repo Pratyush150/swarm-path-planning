@@ -102,8 +102,8 @@ def solve(
     if kind == "ecbs":
         ecbs = ECBS(graph, starts, goals, ECBSConfig(**options), cache)  # type: ignore[arg-type]
         return ecbs.solve()
-    pp = PrioritisedPlanner(graph, starts, goals, PPConfig(**options), cache)  # type: ignore[arg-type]
-    return pp.solve()
+    config = PPConfig(**options)  # type: ignore[arg-type]
+    return PrioritisedPlanner(graph, starts, goals, config, cache).solve()
 
 
 def solver_for(spec: str) -> Callable[..., Solution]:

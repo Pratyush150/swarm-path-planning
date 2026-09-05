@@ -84,15 +84,17 @@ class MapInfo:
     why: str
 
 
-#: The maps the benchmark sweep uses. The full archive has 33; these are the
-#: ones that separate the algorithms, ordered by how hard they are for MAPF.
+#: The maps this package is set up to run on, ordered by how hard they are for
+#: MAPF. The archive has 33; these are the ones that separate the algorithms.
+#: ``config/benchmark_default.json`` sweeps seven of them; ``empty-48-48`` and
+#: ``random-64-64-20`` are here for larger-scale experiments.
 MAPS: List[MapInfo] = [
     MapInfo("empty-32-32", 32, 32, 1024, "no obstacles: pure agent-agent congestion"),
     MapInfo("random-32-32-20", 32, 32, 819, "20% random obstacles: the standard small MAPF map"),
-    MapInfo("room-32-32-4", 32, 32, 682, "rooms joined by single-cell doors: bottlenecks"),
+    MapInfo("room-32-32-4", 32, 32, 682, "4x4 rooms joined by one-cell doorways: bottlenecks"),
     MapInfo(
         "maze-32-32-2", 32, 32, 666,
-        "one-cell corridors: no room to pass, Manhattan is useless",
+        "two-cell maze corridors: long detours, Manhattan is badly wrong",
     ),
     MapInfo("den312d", 81, 65, 2445, "game map, open halls with narrow links"),
     MapInfo(
@@ -100,11 +102,14 @@ MAPS: List[MapInfo] = [
         63,
         161,
         5699,
-        "shelf aisles: the fulfilment-centre layout, long one-way corridors",
+        "shelf aisles: the fulfilment-centre layout, long lanes with no room to pass",
     ),
     MapInfo("empty-48-48", 48, 48, 2304, "larger open space: light-show-scale agent counts"),
     MapInfo("random-64-64-20", 64, 64, 3270, "larger random map"),
-    MapInfo("Berlin_1_256", 256, 256, 47540, "city map, 65k cells: heuristic and memory pressure"),
+    MapInfo(
+        "Berlin_1_256", 256, 256, 47540,
+        "city map, 47.5k free cells: heuristic and memory pressure",
+    ),
 ]
 
 MAPS_BY_NAME: Dict[str, MapInfo] = {m.name: m for m in MAPS}

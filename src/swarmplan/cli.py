@@ -9,6 +9,7 @@ downloading an 8 MB benchmark archive.
 from __future__ import annotations
 
 import argparse
+import random
 import sys
 from pathlib import Path
 from typing import List, Optional, Sequence
@@ -82,7 +83,7 @@ def cmd_demo(args: argparse.Namespace) -> int:
         "cbs:pc,bp,dg", grid.graph, starts, goals, time_limit=args.time_limit, cache=cache
     )
     problems = validate_plan(result.paths, starts, goals, grid.graph)
-    print(f"\nindependent validation of the optimal plan: {len(problems)} problems")
+    print(f"\nindependent validation of the optimal plan: {len(problems)} problems found")
     horizon = max(len(p) for p in result.paths)
     steps = [int(round(i * (horizon - 1) / 5)) for i in range(6)]
     print("\noptimal plan, sampled (agents a-e, # obstacle):\n")
@@ -144,6 +145,75 @@ def cmd_solve(args: argparse.Namespace) -> int:
         else:
             print(f"  {result.algorithm:18s} {result.status:>8s}  after {result.runtime:.2f}s")
     return 0
+
+
+def cmd_execute(args: argparse.Namespace) -> int:
+    """Plan a benchmark instance, then execute it with agents running late.
+
+    Reports the two things the execution layer exists to separate: what a
+    fixed timetable does when a vehicle slips, and what the dependency graph
+    does with the same plan and the same delays.
+    """
+    data_dir = Path(args.data_dir) if args.data_dir else datasets.default_data_dir()
+    map_path = datasets.map_path(args.map, data_dir)
+    scen_path = datasets.scen_path(args.map, args.scen, args.scen_kind, data_dir)
+    if not map_path.exists() or not scen_path.exists():
+        print(
+            f"benchmark data not found ({map_path}). Run tools/fetch_benchmarks.py first.",
+            file=sys.stderr,
+        )
+        return 2
+    grid = GridMap.from_file(map_path)
+    scen = load_scen(scen_path)
+    instance = make_instance(grid, scen, args.agents)
+    result = solve(
+        args.algorithm, grid.graph, instance.starts, instance.goals, time_limit=args.time_limit
+    )
+    if not result.solved:
+        print(f"{result.algorithm}: {result.status} on {args.map} with {args.agents} agents")
+        return 1
+
+    adg = ActionDependencyGraph(result.paths)
+    rng = random.Random(args.seed)
+    delays = {}
+    for agent in rng.sample(range(len(result.paths)), min(args.delayed, len(result.paths))):
+        last = len(result.paths[agent]) - 1
+        if last < 1:
+            continue
+        delays[(agent, rng.randint(1, last))] = args.delay_ticks
+
+    safe = adg.execute(delays)
+    naive = fixed_schedule_execution(result.paths, delays)
+    print(
+        f"{args.map}, {args.agents} agents, {result.algorithm}: "
+        f"sum-of-costs {result.cost}, makespan {result.makespan}"
+    )
+    print(
+        f"dependency graph: {adg.n_dependencies} ordering edges, "
+        f"{adg.n_cross_agent} of them between different agents"
+    )
+    print(
+        f"delaying {len(delays)} agents by {args.delay_ticks} ticks each "
+        f"(seed {args.seed}):"
+    )
+    print(
+        f"  fixed timetable execution:  {len(naive.collisions()):3d} collisions, "
+        f"{naive.ticks} ticks"
+    )
+    print(
+        f"  dependency-graph execution: {len(safe.collisions()):3d} collisions, "
+        f"{safe.ticks} ticks"
+    )
+    flown = [[row[a] for row in safe.positions] for a in range(len(result.paths))]
+    plan = smooth_plan(
+        grid.graph, flown, cell_size=args.cell_size, v_max=args.v_max, a_max=args.a_max
+    )
+    print(
+        f"\ncontinuous-time check of the delayed execution "
+        f"({args.cell_size:g} m cells, {args.v_max:g} m/s, {args.a_max:g} m/s^2):"
+    )
+    print("  " + separation_report(plan, args.min_separation).replace("\n", "\n  "))
+    return 0 if safe.is_safe() else 1
 
 
 def cmd_show(args: argparse.Namespace) -> int:
@@ -208,6 +278,23 @@ def build_parser() -> argparse.ArgumentParser:
     w.add_argument("--algorithm", default="ecbs:w=1.1")
     w.add_argument("--time-limit", type=float, default=120.0)
     w.set_defaults(func=cmd_show)
+
+    e = sub.add_parser("execute", help="plan a benchmark instance and fly it with delays")
+    e.add_argument("--map", default="random-32-32-20")
+    e.add_argument("--scen", type=int, default=1)
+    e.add_argument("--scen-kind", choices=("random", "even"), default="random")
+    e.add_argument("--agents", type=int, default=30)
+    e.add_argument("--algorithm", default="ecbs:w=1.1")
+    e.add_argument("--delayed", type=int, default=2, help="how many agents run late")
+    e.add_argument("--delay-ticks", type=int, default=5)
+    e.add_argument("--seed", type=int, default=0)
+    e.add_argument("--cell-size", type=float, default=2.0, help="metres per grid cell")
+    e.add_argument("--v-max", type=float, default=3.0)
+    e.add_argument("--a-max", type=float, default=2.0)
+    e.add_argument("--min-separation", type=float, default=1.5)
+    e.add_argument("--time-limit", type=float, default=30.0)
+    e.add_argument("--data-dir", default=None)
+    e.set_defaults(func=cmd_execute)
 
     v = sub.add_parser("data", help="report which benchmark files are present")
     v.add_argument("--data-dir", default=None)

@@ -29,7 +29,7 @@ import numpy as np
 
 from ..constraints import ConstraintTable
 from ..graph import SearchGraph
-from .astar import LowLevelResult, _reconstruct, default_horizon
+from .astar import LowLevelResult, default_horizon, reconstruct_path
 from .heuristic import UNREACHABLE
 
 
@@ -168,7 +168,7 @@ def focal_space_time_astar(
 
         if loc == goal and t >= release:
             return LowLevelResult(
-                path=_reconstruct(parents, state),
+                path=reconstruct_path(parents, state),
                 cost=t,
                 lower_bound=f_min,
                 expanded=expanded,

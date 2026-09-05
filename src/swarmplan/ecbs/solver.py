@@ -36,8 +36,9 @@ heuristic learned online, used to order FOCAL, with the admissible bound kept
 separately. We implement ECBS with an optional **admissible** CG/DG heuristic
 added to ``LB`` (which tightens ``LB_min`` and therefore the bound), and we do
 not implement the online-learned inadmissible estimate. That is the main gap
-between this and a full EECBS, and it is why the reference implementation this
-was checked against is cited in the README rather than claimed to be matched.
+between this and a full EECBS. The EECBS reference implementation is cited in
+the README as the thing a serious comparison would be made against; we have not
+run it here and we do not claim to match it.
 """
 
 from __future__ import annotations
@@ -307,8 +308,11 @@ class ECBS:
             while focal and focal[0][3].expanded:
                 heappop(focal)
             if not focal:
-                # Nothing within the suboptimality bound is unexpanded; widen it
-                # by expanding the best node in OPEN instead.
+                # Defensive: the minimum-LB node always satisfies
+                # cost <= w * sum(lb_i) = w * LB_min, because every path in it
+                # came from a focal search bounded by w, so it is always
+                # eligible for FOCAL and this branch should not be reachable.
+                # Expanding it keeps the bound either way.
                 node = open_list[0][2]
             else:
                 node = heappop(focal)[3]

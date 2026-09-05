@@ -23,8 +23,8 @@ succeeds on it, because a baseline is only honest if its failure mode is
 demonstrated rather than described.
 
 What it is genuinely good for: large open maps, low density, and any system that
-would rather have a plan in 50 ms and re-plan on failure than a provably optimal
-plan in 20 s. The random-restart variant here recovers a good fraction of the
+would rather have a plan in milliseconds and re-plan on failure than a provably
+optimal plan seconds later. The random-restart variant here recovers a good fraction of the
 instances a single fixed order fails on -- how large a fraction is in the
 benchmark tables, measured, not assumed.
 """
@@ -113,6 +113,12 @@ class PrioritisedPlanner:
 
     def plan_with_order(self, order: Sequence[int]) -> Optional[List[List[int]]]:
         """Plan in the given priority order. ``None`` if any agent gets stuck.
+
+        Note on the time limit: it is checked between restart attempts, not
+        inside one. A single pass is *k* single-agent searches and is normally
+        milliseconds, so a pass is allowed to finish; on a very large map with
+        many agents that pass can overrun the configured budget, and the
+        benchmark tables say where that happened.
 
         The horizon matters here in a way it does not in CBS: a low-priority
         agent may have to wait a long time for the traffic ahead to clear, so

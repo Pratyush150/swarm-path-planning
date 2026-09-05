@@ -46,6 +46,25 @@ def test_solve_runs_on_a_real_instance(capsys):
     assert "ok" in out
 
 
+@requires_data
+def test_execute_command_reports_both_execution_models(capsys):
+    """The delayed execution has to be safe, and the naive one has to be shown."""
+    code = main([
+        "execute", "--agents", "10", "--delayed", "2", "--delay-ticks", "4",
+        "--algorithm", "ecbs:w=1.2", "--time-limit", "30",
+    ])
+    out = capsys.readouterr().out
+    assert code == 0
+    assert "ordering edges" in out
+    assert "dependency-graph execution:   0 collisions" in out
+    assert "continuous-time check" in out
+
+
+def test_execute_without_data_fails_cleanly(tmp_path, capsys):
+    assert main(["execute", "--data-dir", str(tmp_path), "--agents", "4"]) == 2
+    assert "benchmark data not found" in capsys.readouterr().err
+
+
 def test_show_command_plans_a_small_show(capsys):
     assert main(["show", "--agents", "20", "--text", "AB", "--algorithm", "ecbs:w=1.5",
                  "--time-limit", "90"]) == 0

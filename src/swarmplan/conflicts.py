@@ -114,9 +114,7 @@ def at(path: Sequence[int], t: int) -> int:
     return path[t] if t < len(path) else path[-1]
 
 
-def find_first_conflict(
-    paths: Sequence[Sequence[int]], start_agent: int = 0
-) -> Optional[Conflict]:
+def find_first_conflict(paths: Sequence[Sequence[int]]) -> Optional[Conflict]:
     """The earliest conflict in a joint plan, or ``None`` if it is valid.
 
     Scanning by timestep and returning the first hit keeps the constraint tree
@@ -125,7 +123,7 @@ def find_first_conflict(
     n = len(paths)
     horizon = max((len(p) for p in paths), default=0)
     for t in range(horizon):
-        for i in range(start_agent, n):
+        for i in range(n):
             pi = paths[i]
             li_prev = at(pi, t - 1) if t > 0 else None
             li = at(pi, t)

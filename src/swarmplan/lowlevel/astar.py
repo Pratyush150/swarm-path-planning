@@ -141,7 +141,7 @@ def space_time_astar(
             return LowLevelResult(None, expanded=expanded, generated=generated)
 
         if loc == goal and t >= release:
-            path = _reconstruct(parents, state)
+            path = reconstruct_path(parents, state)
             return LowLevelResult(
                 path=path,
                 cost=t,
@@ -176,10 +176,10 @@ def space_time_astar(
     return LowLevelResult(None, expanded=expanded, generated=generated)
 
 
-def _reconstruct(
+def reconstruct_path(
     parents: Dict[Tuple[int, int], Tuple[int, int]], state: Tuple[int, int]
 ) -> List[int]:
-    """Walk the parent pointers back to the start and return vertices in time order."""
+    """Walk the parent pointers back to the start, returning vertices in time order."""
     out = []
     cur: Optional[Tuple[int, int]] = state
     while cur is not None:

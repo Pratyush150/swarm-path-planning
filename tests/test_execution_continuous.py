@@ -6,6 +6,7 @@ import numpy as np
 import pytest
 
 from swarmplan.cbs.solver import solve_cbs
+from swarmplan.execution.adg import ActionDependencyGraph
 from swarmplan.execution.separation import (
     min_separation,
     pairwise_min_separation,
@@ -110,6 +111,28 @@ def test_report_mentions_the_limits_and_the_closest_approach():
     text = separation_report(plan, 1.0)
     assert "peak speed" in text and "closest approach" in text
     assert "violations" in text
+
+
+@pytest.mark.parametrize(
+    "delays", [{}, {(0, 2): 4}, {(1, 1): 3, (2, 2): 5}], ids=["none", "one", "two"]
+)
+def test_delayed_execution_still_keeps_its_separation_in_continuous_time(delays):
+    """Delay agents, execute through the dependency graph, and measure the flight.
+
+    This is the end-to-end property the execution layer exists for: the plan is
+    still separated in continuous time after the schedule has been disrupted,
+    not merely conflict-free on the grid.
+    """
+    grid, paths = crossing_plan()
+    trace = ActionDependencyGraph(paths).execute(delays)
+    assert trace.is_safe()
+    flown = [[row[a] for row in trace.positions] for a in range(len(paths))]
+    plan = smooth_plan(grid.graph, flown, cell_size=2.0, v_max=3.0, a_max=2.0)
+    # 2 m cells: adjacent agents are 2 m apart on the grid and the smoothed
+    # corners bring them no closer than 1.2 m at any instant.
+    assert min_separation(plan) > 1.2
+    assert not separation_violations(plan, 1.2)
+    assert plan.within_limits()
 
 
 def test_path_coordinates_scale_with_cell_size():

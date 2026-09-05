@@ -203,8 +203,10 @@ def mdds_dependent(m1: MDD, m2: MDD) -> bool:
 def joint_mdd_size(m1: MDD, m2: MDD) -> int:
     """Number of joint states explored by :func:`mdds_dependent`.
 
-    Exposed for the ablation table: this is the cost that buys the DG heuristic,
-    and on wide MDDs it is quadratic in the width.
+    This is what the DG heuristic costs for one pair of agents, and it is
+    quadratic in the MDD widths -- which is why DG is worth switching off on
+    open maps where every MDD is wide. Exposed for diagnostics rather than used
+    by the solvers.
     """
     horizon = max(m1.cost, m2.cost)
     frontier = {(m1.start, m2.start)}

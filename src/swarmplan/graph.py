@@ -4,8 +4,8 @@ Everything above this module -- space-time A*, CBS, ECBS, prioritised planning,
 the assignment layer -- talks to a :class:`SearchGraph` and never to a grid
 directly. A location is an ``int`` node id, not a coordinate tuple, because the
 inner loops of a multi-agent search do tens of millions of set and dict
-operations on locations and interning them as small integers is worth roughly a
-factor of three in Python.
+operations on locations, and a small integer hashes and compares faster than a
+tuple does.
 
 Two concrete graphs are provided:
 

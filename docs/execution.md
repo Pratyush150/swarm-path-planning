@@ -65,7 +65,8 @@ position is linear and the minimum distance over the interval has a closed form.
 Sampling distances at the sample points would miss the closest approach, which
 is precisely in the middle of a crossing.
 
-The demo shows the check firing on a plan that is perfectly legal on the grid:
+The demo runs the check on a plan that is perfectly legal on the grid, with a
+1 m requirement:
 
 ```
 continuous-time execution check (2 m cells, 3 m/s, 2 m/s^2):
@@ -75,8 +76,9 @@ continuous-time execution check (2 m cells, 3 m/s, 2 m/s^2):
   violations: 0
 ```
 
-Raise the requirement to 1.5 m on 2 m cells and the same plan has violations.
-Grid legality is not separation.
+It passes with 0.3 m to spare. Raise the requirement to 1.5 m -- still less
+than the 2 m cell -- and the same plan is in violation. Grid legality is not
+separation, and the only way to know which one you have is to measure it.
 
 ## What this layer does not model
 

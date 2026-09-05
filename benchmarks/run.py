@@ -30,6 +30,7 @@ from __future__ import annotations
 import argparse
 import csv
 import json
+import statistics
 import sys
 import time
 from pathlib import Path
@@ -232,6 +233,26 @@ def markdown_tables(records: List[RunRecord], timeout: float) -> str:
             f"{stats['p90']:.2f} | {stats['max']:.2f} | "
             + (f"{ratio:.3f} |" if ratio else "- |")
         )
+    lines.append("\n## What each CBS improvement is worth\n")
+    lines.append(
+        "| map | variant | solved | median s | mean high-level nodes | "
+        "mean low-level expansions |"
+    )
+    lines.append("|---|---|---|---|---|---|")
+    for (map_name, alg), rows in group_by(live, "map_name", "algorithm").items():
+        if not alg.startswith("CBS"):
+            continue
+        solved = [r for r in rows if r.solved]
+        if not solved:
+            continue
+        stats = runtime_stats(rows)
+        nodes = statistics.fmean(r.high_level_expanded for r in solved)
+        low = statistics.fmean(r.low_level_expanded for r in solved)
+        lines.append(
+            f"| {map_name} | {alg} | {len(solved)}/{len(rows)} | {stats['median']:.2f} | "
+            f"{nodes:.0f} | {low:.0f} |"
+        )
+
     lines.append(f"\nTime budget per instance: {timeout:.0f} s.\n")
     return "\n".join(lines)
 

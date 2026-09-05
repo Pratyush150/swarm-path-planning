@@ -77,6 +77,11 @@ algorithm list, and the agent counts per map.
   single-step moves, vertex conflicts and swap conflicts -- by code that does
   not share anything with the solvers. A plan that fails validation is recorded
   as `invalid`, and none were.
+* **The deadline is checked between high-level expansions** (CBS, ECBS) and
+  **between restart attempts** (prioritised planning), so a run can overrun its
+  budget rather than being killed mid-node. In the sweep behind the README the
+  worst overrun was 48 s on a 20 s budget, on `Berlin_1_256` with 150 agents.
+  The README says where that matters.
 
 ## Output
 
