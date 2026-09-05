@@ -1,0 +1,8 @@
+numpy>=1.21
+# Optional. Used only by swarmplan.assignment as a cross-check against our own
+# Hungarian implementation, and by tools/. Everything runs without it.
+scipy>=1.7
+# Optional. Needed only for the figures and animations in benchmarks/run.py.
+matplotlib>=3.5
+# Optional. Needed only to write the animated GIFs.
+pillow>=9.0

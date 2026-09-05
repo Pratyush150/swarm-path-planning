@@ -1,0 +1,12 @@
+{
+  "_comment": "Smoke-test sweep: a few minutes on one CPU. Used by 'benchmarks/run.py --quick'.",
+  "timeout": 10,
+  "scenario_kind": "random",
+  "scenarios": [1, 2],
+  "validate": true,
+  "algorithms": ["cbs", "cbs:pc,bp,dg", "ecbs:w=1.1", "pp"],
+  "sweeps": [
+    {"map": "random-32-32-20", "agents": [5, 10, 15, 20]},
+    {"map": "empty-32-32", "agents": [10, 20, 30]}
+  ]
+}

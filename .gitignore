@@ -1,0 +1,39 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.eggs/
+.venv/
+venv/
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+.DS_Store
+
+# Benchmark maps and scenarios are fetched, never committed. They are the
+# Sturtevant / movingai.com MAPF benchmark set; see tools/fetch_benchmarks.py.
+data/maps/
+data/scen-random/
+data/scen-even/
+data/*.zip
+data/*.part
+
+# Generated results and figures. Everything here is produced by
+# benchmarks/run.py and benchmarks/make_figures.py; only the small optimised set
+# the README displays is committed.
+benchmarks/output/*
+!benchmarks/output/.gitkeep
+!benchmarks/output/README.md
+!benchmarks/output/swarm-demo.gif
+!benchmarks/output/swarm-demo.mp4
+!benchmarks/output/formation-morph.gif
+!benchmarks/output/formation-morph.mp4
+!benchmarks/output/swarm-filmstrip.png
+!benchmarks/output/formation-morph.png
+!benchmarks/output/success-rate.png
+!benchmarks/output/runtime-distribution.png
+!benchmarks/output/conflict-spacetime.png
+!benchmarks/output/assignment-comparison.png
